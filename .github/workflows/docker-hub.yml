@@ -1,19 +1,21 @@
-name: "Deploy Production"
+name: Docker Image Build and Push
 on:
   push:
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
-env:
-  APP_NAME: "wisdom-book-2026-1"
+    branches: ["main"]
+
 jobs:
   build:
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
     steps:
-      - name: "Checkout"
-        uses: "actions/checkout@v4"
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -21,14 +23,15 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: "Build and push container"
-        run: |-
-          IMAGE_TAG="${GITHUB_REF#refs/*/}"
-
-          IMAGE_NAME="${{ secrets.DOCKER_USERNAME }}/${{ env.APP_NAME }}:${IMAGE_TAG}"
-
-          docker build -f docker/prod.Dockerfile -t "${IMAGE_NAME}" --platform linux/amd64,linux/arm64 .
-          docker push "${IMAGE_NAME}"
+      # Build and push Docker image with BuildX
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/wisdom-book:latest
 
 #name: Production Delivery
 #on:
