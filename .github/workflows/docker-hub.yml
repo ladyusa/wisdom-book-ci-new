@@ -4,7 +4,7 @@ on:
     branches:
       - main
 env:
-  APP_NAME: "wisdom-book"
+  APP_NAME: wisdom-book
 jobs:
   build:
     runs-on: ubuntu-latest
